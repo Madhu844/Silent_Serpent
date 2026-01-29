@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silent_Serpent // Elite Cyber Defense ALPHA</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* --- ticker --- */
+        .top-ticker {
+            background: #000;
+            color: var(--primary);
+            font-family: var(--font-code);
+            font-size: 0.75rem;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #111;
+            white-space: nowrap;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .ticker-content {
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        @keyframes ticker {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            100% {
+                transform: translate3d(-100%, 0, 0);
+            }
+        }
+
+        /* --- Terminal --- */
+        #terminal-overlay {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            height: 40vh;
+            background: rgba(10, 10, 10, 0.95);
+            border-top: 2px solid var(--primary);
+            backdrop-filter: blur(10px);
+            z-index: 999;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Fira Code', monospace;
+            box-shadow: 0 -10px 50px rgba(0, 255, 0, 0.1);
+        }
+
+        #terminal-overlay.open {
+            bottom: 0;
+        }
+
+        .term-header {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+        }
+
+        .term-output {
+            flex-grow: 1;
+            overflow-y: auto;
+            color: #ccc;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            white-space: pre-wrap;
+        }
+
+        .term-input-line {
+            display: flex;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .term-input {
+            background: transparent;
+            border: none;
+            color: white;
+            flex-grow: 1;
+            margin-left: 0.5rem;
+            font-family: 'Fira Code', monospace;
+            outline: none;
+        }
+
+        /* --- Images & Reviews Fix --- */
+        .content-img {
+            width: 100%;
+            height: 160px;
+            /* Reduced height */
+            object-fit: cover;
+            border-bottom: 2px solid var(--primary);
+            transition: 0.3s;
+        }
+
+        .review-section {
+            margin-top: 4rem;
+            border-top: 1px solid #333;
+            padding-top: 2rem;
+        }
+
+        .review-badge {
+            background: #00b67a;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--primary);
+        }
+
+        .login-btn {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+            font-size: 0.7rem;
+            padding: 0.3rem 0.8rem;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 1rem;
+        }
+
+        .login-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Dashboard Styles (injected later) */
+        .dash-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: #111;
+            padding: 1.5rem;
+            border-left: 3px solid var(--primary);
+        }
+
+        .stat-num {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .stat-label {
+            color: #777;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        /* Threat Map Canvas */
+        #threat-map-container {
+            position: relative;
+            height: 300px;
+            background: #000;
+            border: 1px solid #333;
+            margin: 2rem 0;
+            overflow: hidden;
+            display: none;
+            /* Hidden by default until dashboard */
+        }
+
+        #threat-map {
+            width: 100%;
+            height: 100%;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top Crypto/Intel Ticker -->
+    <div class="top-ticker">
+        <div class="ticker-content">
+            BTC: $64,230 (+1.2%) &nbsp; | &nbsp; ETH: $3,450 (+0.8%) &nbsp; | &nbsp; ⚠ ALERT: New CVE-2026-9281 RCE
+            exploitable in Win11 &nbsp; | &nbsp; ⚡ 0-Day found in Kernel v6.8 &nbsp; | &nbsp; XMR: $180 (Untraceable)
+            &nbsp; | &nbsp; DEFCON 34 Registration OPEN
+        </div>
+    </div>
+
+    <!-- Background Grid -->
+    <div class="grid-bg"></div>
+    <canvas id="matrix-bg"></canvas>
+    <div class="scanline"></div>
+
+    <!-- Floating Social Bar -->
+    <div class="floating-social-bar">
+        <a href="https://wa.me" target="_blank" title="WhatsApp"><i data-lucide="message-circle"></i></a>
+        <a href="https://www.facebook.com" target="_blank" title="Facebook"><i data-lucide="facebook"></i></a>
+        <a href="https://www.youtube.com" target="_blank" title="YouTube"><i data-lucide="youtube"></i></a>
+        <a href="https://www.linkedin.com" target="_blank" title="LinkedIn"><i data-lucide="linkedin"></i></a>
+    </div>
+
+    <!-- Floating WhatsApp -->
+    <a href="https://wa.me" target="_blank" class="floating-wa" title="Secure Uplink via WhatsApp">
+        <i data-lucide="message-circle"></i>
+        <span>SUPPORT</span>
+    </a>
+
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <div class="logo" onclick="toggleTerminal()">
+                <i data-lucide="shield-check" class="logo-icon"></i>
+                <div class="logo-text">
+                    <span class="white">Silent_</span><span class="green">Serpent</span>
+                    <span class="sub-text">CYBER DEFENSE</span>
+                </div>
+            </div>
+
+            <ul class="nav-links">
+                <li><a href="#" data-target="home" class="active">HOME</a></li>
+                <li><a href="#" data-target="threat_map" style="color:#ff0000">🌍 THREAT MAP</a></li>
+                <li><a href="#" data-target="courses" style="color:#00f3ff">COURSES</a></li>
+                <li><a href="#" data-target="news">NEWS</a></li>
+                <li><a href="#" data-target="networking">NETWORKING</a></li>
+                <li><a href="#" data-target="offensive">OFFENSIVE</a></li>
+                <li><a href="#" data-target="defensive">DEFENSIVE</a></li>
+                <li><a href="#" data-target="store" style="color:var(--primary)">BLACK_MARKET</a></li>
+                <li><a href="#" data-target="about">ABOUT</a></li>
+            </ul>
+
+            <div style="display:flex; align-items:center">
+                <button class="cta-btn" onclick="navigate('contact')">CONTACT</button>
+                <div id="mobile-toggle"
+                    style="display:none; margin-right: 1rem; cursor: pointer; color: var(--primary);">
+                    <i data-lucide="menu"></i>
+                </div>
+                <button class="login-btn" onclick="checkLogin()">_LOGIN</button>
+            </div>
+        </nav>
+
+        <!-- Main Hero / Content Area -->
+        <main id="main-content">
+            <!-- Default Home Content (Hero) -->
+            <section class="hero-section">
+                <!-- Hero Background Slider -->
+                <div id="hero-slider" class="hero-slider">
+                    <img src="assets/networking.png" class="slide active" alt="Slide 1">
+                    <img src="assets/offensive.png" class="slide" alt="Slide 2">
+                    <img src="assets/defensive.png" class="slide" alt="Slide 3">
+                    <div class="slider-overlay"></div>
+                </div>
+
+                <!-- Status Line -->
+                <div class="status-line">
+                    <span class="status-dot"></span> SYSTEM ONLINE :: V.3.0.0
+                </div>
+
+                <!-- Main Hero Grid -->
+                <div class="hero-grid">
+                    <div class="hero-text">
+                        <h1 class="hero-title">
+                            <div class="line-white">SILENT</div>
+                            <div class="line-green">STEALTH</div>
+                            <div class="line-white-outline" style="-webkit-text-stroke: 1px #555; color: transparent;">
+                                ABSOLUTE</div>
+                            <div class="line-white">SECURITY</div>
+                        </h1>
+
+                        <p class="hero-desc">
+                            The ultimate resource for Cyber Security, Ethical Hacking, and OSINT.
+                            From Lab Setup to Bug Bounties, we provide the intelligence you need to operate in the
+                            shadows.
+                        </p>
+
+                        <div class="hero-buttons">
+                            <button class="primary-btn" onclick="navigate('networking')">START LEARNING <i
+                                    data-lucide="chevron-right"></i></button>
+                            <button class="secondary-btn" onclick="toggleTerminal()">OPEN TERMINAL [~]</button>
+                        </div>
+
+                        <!-- Trustpilot Badge -->
+                        <div style="margin-top: 2rem; display: flex; align-items: center; gap: 1rem;">
+                            <div class="review-badge">
+                                <i data-lucide="star" style="fill: white; width: 14px;"></i> Trustpilot
+                            </div>
+                            <span style="font-size: 0.8rem; color: #ccc;">Rated <strong>4.9/5.0</strong> by Elite
+                                Operators</span>
+                        </div>
+                    </div>
+
+                    <!-- Radar Visual -->
+                    <div class="hero-visual">
+                        <div class="radar-circle">
+                            <div class="radar-scanner"></div>
+                            <div class="radar-icon">
+                                <i data-lucide="shield"></i>
+                            </div>
+                            <div class="orbit-dot"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Featured Reviews Section - Redesigned to Match Reference -->
+                <div class="review-section" style="margin-top: 5rem; border-top: 1px solid #111; padding-top: 4rem;">
+                    <h3
+                        style="color: var(--primary); font-family: var(--font-head); margin-bottom: 3rem; font-size: 2.5rem; letter-spacing: 3px;">
+                        OPERATOR REVIEWS</h3>
+
+                    <div class="card-grid"
+                        style="grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
+                        <!-- Review Card 1 -->
+                        <div class="card review-card"
+                            style="padding: 2.5rem; position: relative; background: rgba(10,10,10,0.8);">
+                            <div class="review-status"
+                                style="color: var(--primary); font-family: var(--font-code); font-size: 0.8rem; margin-bottom: 1.5rem; line-height: 1.4;">
+                                <div>&gt; CONNECTION: ENCRYPTED</div>
+                                <div>&gt; LOCATION: REDACTED</div>
+                                <div>&gt; IDENTITY: ANONYMOUS</div>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.5rem;">
+                                <div class="avatar-ring"
+                                    style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--primary); padding: 3px; position: relative; overflow: hidden;">
+                                    <img src="assets/offensive.png" alt="Avatar"
+                                        style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; filter: grayscale(1) brightness(1.2);">
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="color: #fff; font-size: 1.1rem; font-weight: 600;">Agent_K // Red Teamer
+                                    </div>
+                                    <div
+                                        style="color: #666; font-size: 0.8rem; letter-spacing: 1px; margin-top: 0.3rem;">
+                                        ★★★★★</div>
+                                </div>
+                            </div>
+
+                            <blockquote
+                                style="font-size: 1.2rem; line-height: 1.6; color: #ccc; border: none; padding: 0; margin: 0; font-family: 'Inter', sans-serif;">
+                                "The OSINT tools here are next level. Helped me trace a complex target in minutes."
+                            </blockquote>
+                        </div>
+
+                        <!-- Review Card 2 -->
+                        <div class="card review-card"
+                            style="padding: 2.5rem; position: relative; background: rgba(10,10,10,0.8);">
+                            <div class="review-status"
+                                style="color: var(--secondary); font-family: var(--font-code); font-size: 0.8rem; margin-bottom: 1.5rem; line-height: 1.4;">
+                                <div>&gt; STATUS: AUTHORIZED</div>
+                                <div>&gt; ORIGIN: DARKNET</div>
+                                <div>&gt; CLEARANCE: LEVEL_4</div>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.5rem;">
+                                <div class="avatar-ring"
+                                    style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--secondary); padding: 3px; position: relative; overflow: hidden;">
+                                    <img src="assets/defensive.png" alt="Avatar"
+                                        style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; filter: grayscale(1) brightness(1.2);">
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="color: #fff; font-size: 1.1rem; font-weight: 600;">Null_Byte // Blue
+                                        Team</div>
+                                    <div
+                                        style="color: #666; font-size: 0.8rem; letter-spacing: 1px; margin-top: 0.3rem;">
+                                        ★★★★★</div>
+                                </div>
+                            </div>
+
+                            <blockquote
+                                style="font-size: 1.2rem; line-height: 1.6; color: #ccc; border: none; padding: 0; margin: 0; font-family: 'Inter', sans-serif;">
+                                "Essential training for anyone serious about defensive operations. The lab guides are
+                                perfect."
+                            </blockquote>
+                        </div>
+
+                        <!-- Review Card 3 -->
+                        <div class="card review-card"
+                            style="padding: 2.5rem; position: relative; background: rgba(10,10,10,0.8);">
+                            <div class="review-status"
+                                style="color: #f0f; font-family: var(--font-code); font-size: 0.8rem; margin-bottom: 1.5rem; line-height: 1.4;">
+                                <div>&gt; BASE: COLOMBO OPS</div>
+                                <div>&gt; ROLE: OPERATOR</div>
+                                <div>&gt; RATING: ELITE</div>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.5rem;">
+                                <div class="avatar-ring"
+                                    style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid #f0f; padding: 3px; position: relative; overflow: hidden;">
+                                    <img src="assets/academy.png" alt="Avatar"
+                                        style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; filter: grayscale(1) brightness(1.2);">
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="color: #fff; font-size: 1.1rem; font-weight: 600;">Kasun // Cyber_SL
+                                    </div>
+                                    <div
+                                        style="color: #666; font-size: 0.8rem; letter-spacing: 1px; margin-top: 0.3rem;">
+                                        ★★★★★</div>
+                                </div>
+                            </div>
+
+                            <blockquote
+                                style="font-size: 1.2rem; line-height: 1.6; color: #ccc; border: none; padding: 0; margin: 0; font-family: 'Inter', sans-serif;">
+                                "Silent_Serpent has established the best security community in the region. Highly
+                                recommended!"
+                            </blockquote>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 4rem;">
+                        <button class="secondary-btn" onclick="navigate('reviews')"
+                            style="padding: 1rem 3rem; border: 1px solid var(--primary); color: var(--primary);">
+                            VIEW ALL REVIEWS (18,240+)
+                        </button>
+                    </div>
+                </div>
+    </div>
+    </div>
+    </section>
+    </main>
+
+    <!-- Footer Info -->
+    <footer style="background: #050505; border-top: 1px solid #111; padding: 5rem 2rem 2rem 2rem; color: #777;">
+        <div class="footer-grid"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 4rem; max-width: 1200px; margin: 0 auto;">
+            <div class="footer-col">
+                <div class="logo" style="margin-bottom: 1.5rem;">
+                    <span class="white"
+                        style="font-size: 1.5rem; font-weight: 800; font-family: var(--font-head);">SILENT_</span><span
+                        class="green"
+                        style="font-size: 1.5rem; font-weight: 800; font-family: var(--font-head);">SERPENT</span>
+                </div>
+                <p style="line-height: 1.8; font-size: 0.9rem; margin-bottom: 2rem;">
+                    The premium destination for offensive and defensive cybersecurity experts. We provide the tools,
+                    intelligence, and training required for high-stakes operations.
+                </p>
+                <div class="social-links" style="display: flex; gap: 1rem;">
+                    <a href="https://wa.me" target="_blank" class="social-btn"><i data-lucide="message-circle"></i></a>
+                    <a href="https://facebook.com" target="_blank" class="social-btn"><i data-lucide="facebook"></i></a>
+                    <a href="https://youtube.com" target="_blank" class="social-btn"><i data-lucide="youtube"></i></a>
+                    <a href="https://linkedin.com" target="_blank" class="social-btn"><i data-lucide="linkedin"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h4 style="color: #fff; font-family: var(--font-head); margin-bottom: 1.5rem; letter-spacing: 2px;">
+                    OPERATIONS</h4>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 1rem;"><a href="#" onclick="navigate('offensive')"
+                            style="color: #777; text-decoration: none; transition: 0.3s;">Offensive Security</a></li>
+                    <li style="margin-bottom: 1rem;"><a href="#" onclick="navigate('defensive')"
+                            style="color: #777; text-decoration: none; transition: 0.3s;">Defensive Operations</a></li>
+                    <li style="margin-bottom: 1rem;"><a href="#" onclick="navigate('intel')"
+                            style="color: #777; text-decoration: none; transition: 0.3s;">Cyber Intelligence</a></li>
+                    <li style="margin-bottom: 1rem;"><a href="#" onclick="navigate('store')"
+                            style="color: #777; text-decoration: none; transition: 0.3s;">Black Market</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col" id="footer-contact">
+                <h4 style="color: #fff; font-family: var(--font-head); margin-bottom: 1.5rem; letter-spacing: 2px;">
+                    CONTACT BASIS</h4>
+                <p style="margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="map-pin" style="color: var(--primary); width: 18px;"></i> Galle Road, Colombo, Sri
+                    Lanka
+                </p>
+                <p style="margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="mail" style="color: var(--primary); width: 18px;"></i> intel@silent-serpent.com
+                </p>
+                <p style="margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="phone" style="color: var(--primary); width: 18px;"></i> +94 (77) 123 4567
+                </p>
+                <div
+                    style="margin-top: 2rem; padding: 1.5rem; background: rgba(57, 255, 20, 0.05); border-left: 2px solid var(--primary);">
+                    <p style="color: #fff; font-size: 0.8rem; margin-bottom: 0.5rem;">SECURE UPLINK STATUS:</p>
+                    <p
+                        style="color: var(--primary); font-family: var(--font-code); font-size: 0.9rem; font-weight: bold;">
+                        ENCRYPTED & ACTIVE</p>
+                </div>
+            </div>
+        </div>
+
+        <div
+            style="text-align: center; margin-top: 5rem; padding-top: 2rem; border-top: 1px solid #111; font-size: 0.75rem; letter-spacing: 1px;">
+            <p>&copy; 2026 SILENT_SERPENT DEFENSE SYSTEMS. ALL RIGHTS RESERVED.</p>
+        </div>
+    </footer>
+    </div>
+
+    <!-- Terminal Overlay Container -->
+    <div id="terminal-overlay">
+        <div class="term-header">
+            <span>TERMINAL ~ /bin/bash</span>
+            <span onclick="toggleTerminal()" style="cursor:pointer">[X]</span>
+        </div>
+        <div class="term-output" id="term-output">
+            Welcome to SerpentOS V3.0<br>
+            Type 'help' for available commands.<br>
+            ---------------------------------<br>
+        </div>
+        <div class="term-input-line">
+            <span>guest@serpent:~$ </span>
+            <input type="text" class="term-input" id="term-input" autocomplete="off" autofocus>
+        </div>
+    </div>
+
+    <script src="news-feed.js"></script>
+    <script src="data.js"></script>
+    <script src="main.js"></script>
+    <script src="live-updates.js"></script>
+    <script src="modals.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

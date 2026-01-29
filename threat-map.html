@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Threat Map - Silent_Serpent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            color: #0f0;
+        }
+
+        #map-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: radial-gradient(ellipse at center, #0a0a0a 0%, #000 100%);
+        }
+
+        #world-map {
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwMCIgaGVpZ2h0PSI1MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPHBhdGggZD0iTSA1MCAwIEwgMCAwIDAgNTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzExMSIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICA8L3BhdHRlcm4+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz4KPC9zdmc+') center/cover;
+            opacity: 0.3;
+        }
+
+        .attack-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, #ff0000, transparent);
+            transform-origin: left center;
+            animation: pulse 2s infinite;
+            pointer-events: none;
+        }
+
+        .attack-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #ff0000;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+            animation: dotPulse 1s infinite;
+        }
+
+        .country-label {
+            position: absolute;
+            color: #0f0;
+            font-size: 10px;
+            text-shadow: 0 0 5px #0f0;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes dotPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0.7;
+            }
+        }
+
+        #stats-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #0f0;
+            padding: 20px;
+            min-width: 300px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        #stats-panel h2 {
+            color: #0f0;
+            font-size: 20px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px #0f0;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            color: #0f0;
+            font-size: 14px;
+        }
+
+        .stat-value {
+            color: #ff0;
+            font-weight: bold;
+        }
+
+        #live-feed {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #ff0000;
+            padding: 15px;
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+        }
+
+        #live-feed h3 {
+            color: #ff0000;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
+        .feed-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(255, 0, 0, 0.1);
+            border-left: 2px solid #ff0000;
+            font-size: 11px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .feed-time {
+            color: #ff0;
+            font-size: 10px;
+        }
+
+        #attack-type-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #0f0;
+            padding: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 10px;
+            margin-right: 10px;
+        }
+
+        #threat-level {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ff0000;
+            padding: 15px 30px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+        }
+
+        .threat-high {
+            color: #ff0000;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            50%,
+            100% {
+                opacity: 1;
+            }
+
+            25%,
+            75% {
+                opacity: 0.5;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0f0;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0ff;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map-container">
+        <div id="world-map"></div>
+
+        <div id="threat-level">
+            <div class="threat-high">THREAT LEVEL: HIGH</div>
+            <div style="font-size: 12px; color: #0f0; margin-top: 5px;">REAL-TIME MONITORING ACTIVE</div>
+        </div>
+
+        <div id="stats-panel">
+            <h2>⚡ LIVE STATISTICS</h2>
+            <div class="stat-row">
+                <span>Active Attacks:</span>
+                <span class="stat-value" id="active-attacks">0</span>
+            </div>
+            <div class="stat-row">
+                <span>Total Today:</span>
+                <span class="stat-value" id="total-attacks">0</span>
+            </div>
+            <div class="stat-row">
+                <span>Countries Targeted:</span>
+                <span class="stat-value" id="countries-targeted">0</span>
+            </div>
+            <div class="stat-row">
+                <span>Top Attack Type:</span>
+                <span class="stat-value" id="top-attack-type">DDoS</span>
+            </div>
+            <div class="stat-row">
+                <span>Avg Attack Duration:</span>
+                <span class="stat-value" id="avg-duration">2.3s</span>
+            </div>
+        </div>
+
+        <div id="live-feed">
+            <h3>🔴 LIVE ATTACK FEED</h3>
+            <div id="feed-container"></div>
+        </div>
+
+        <div id="attack-type-legend">
+            <div style="color: #0f0; margin-bottom: 10px; font-weight: bold;">ATTACK TYPES:</div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff0000;"></div>
+                <span>DDoS Attack</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff6600;"></div>
+                <span>Malware</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ffff00;"></div>
+                <span>Phishing</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff00ff;"></div>
+                <span>Ransomware</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #00ffff;"></div>
+                <span>SQL Injection</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Country locations (approximate percentages)
+        const countries = {
+            'USA': { x: 20, y: 35 },
+            'UK': { x: 48, y: 30 },
+            'Germany': { x: 50, y: 32 },
+            'France': { x: 49, y: 35 },
+            'Russia': { x: 65, y: 28 },
+            'China': { x: 75, y: 38 },
+            'Japan': { x: 82, y: 38 },
+            'India': { x: 70, y: 45 },
+            'Australia': { x: 80, y: 70 },
+            'Brazil': { x: 32, y: 65 },
+            'Canada': { x: 22, y: 25 },
+            'South Korea': { x: 81, y: 38 },
+            'Singapore': { x: 74, y: 52 },
+            'UAE': { x: 60, y: 45 },
+            'Israel': { x: 55, y: 42 }
+        };
+
+        const attackTypes = ['DDoS', 'Malware', 'Phishing', 'Ransomware', 'SQL Injection', 'XSS', 'Brute Force'];
+        const attackColors = {
+            'DDoS': '#ff0000',
+            'Malware': '#ff6600',
+            'Phishing': '#ffff00',
+            'Ransomware': '#ff00ff',
+            'SQL Injection': '#00ffff',
+            'XSS': '#00ff00',
+            'Brute Force': '#ff0066'
+        };
+
+        let totalAttacks = 0;
+        let activeAttacks = 0;
+        const targetedCountries = new Set();
+        const attackTypeCount = {};
+
+        function getRandomCountry() {
+            const keys = Object.keys(countries);
+            return keys[Math.floor(Math.random() * keys.length)];
+        }
+
+        function getRandomAttackType() {
+            return attackTypes[Math.floor(Math.random() * attackTypes.length)];
+        }
+
+        function createAttack() {
+            const source = getRandomCountry();
+            const target = getRandomCountry();
+
+            if (source === target) return;
+
+            const sourcePos = countries[source];
+            const targetPos = countries[target];
+
+            const attackType = getRandomAttackType();
+            attackTypeCount[attackType] = (attackTypeCount[attackType] || 0) + 1;
+            targetedCountries.add(target);
+
+            // Create attack line
+            const line = document.createElement('div');
+            line.className = 'attack-line';
+
+            const dx = (targetPos.x - sourcePos.x) * window.innerWidth / 100;
+            const dy = (targetPos.y - sourcePos.y) * window.innerHeight / 100;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+            line.style.left = `${sourcePos.x}%`;
+            line.style.top = `${sourcePos.y}%`;
+            line.style.width = `${length}px`;
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.background = `linear-gradient(90deg, ${attackColors[attackType]}, transparent)`;
+
+            document.getElementById('map-container').appendChild(line);
+
+            // Create target dot
+            const dot = document.createElement('div');
+            dot.className = 'attack-dot';
+            dot.style.left = `${targetPos.x}%`;
+            dot.style.top = `${targetPos.y}%`;
+            dot.style.background = attackColors[attackType];
+            dot.style.boxShadow = `0 0 10px ${attackColors[attackType]}, 0 0 20px ${attackColors[attackType]}`;
+
+            document.getElementById('map-container').appendChild(dot);
+
+            // Update feed
+            addFeedItem(source, target, attackType);
+
+            // Update stats
+            totalAttacks++;
+            activeAttacks++;
+            updateStats();
+
+            // Remove after animation
+            setTimeout(() => {
+                line.remove();
+                dot.remove();
+                activeAttacks--;
+                updateStats();
+            }, 2000);
+        }
+
+        function addFeedItem(source, target, attackType) {
+            const feed = document.getElementById('feed-container');
+            const item = document.createElement('div');
+            item.className = 'feed-item';
+
+            const now = new Date();
+            const time = now.toLocaleTimeString();
+
+            item.innerHTML = `
+                <div class="feed-time">${time}</div>
+                <div style="color: ${attackColors[attackType]}; font-weight: bold;">${attackType}</div>
+                <div style="color: #aaa;">From: ${source} → ${target}</div>
+            `;
+
+            feed.insertBefore(item, feed.firstChild);
+
+            // Keep only last 20 items
+            while (feed.children.length > 20) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('active-attacks').textContent = activeAttacks;
+            document.getElementById('total-attacks').textContent = totalAttacks;
+            document.getElementById('countries-targeted').textContent = targetedCountries.size;
+
+            // Find top attack type
+            let topType = 'DDoS';
+            let maxCount = 0;
+            for (let type in attackTypeCount) {
+                if (attackTypeCount[type] > maxCount) {
+                    maxCount = attackTypeCount[type];
+                    topType = type;
+                }
+            }
+            document.getElementById('top-attack-type').textContent = topType;
+
+            const avgDuration = (Math.random() * 3 + 1).toFixed(1);
+            document.getElementById('avg-duration').textContent = avgDuration + 's';
+        }
+
+        // Generate attacks at random intervals
+        function startSimulation() {
+            setInterval(() => {
+                const numAttacks = Math.random() < 0.7 ? 1 : Math.floor(Math.random() * 3) + 1;
+                for (let i = 0; i < numAttacks; i++) {
+                    setTimeout(() => createAttack(), i * 300);
+                }
+            }, 1000 + Math.random() * 2000);
+        }
+
+        // Initialize
+        startSimulation();
+
+        // Initial burst
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => createAttack(), i * 500);
+        }
+    </script>
+</body>
+
+</html>
