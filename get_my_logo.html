@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silent_Serpent // Master 8K Exporter</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap');
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .card {
+            background: #050505;
+            padding: 50px;
+            border: 1px solid #111;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 0 100px rgba(57, 255, 20, 0.05);
+        }
+
+        .preview-box {
+            background: #000;
+            padding: 30px;
+            border: 1px solid #222;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .preview-box img {
+            max-width: 100%;
+            height: auto;
+            max-height: 400px;
+            filter: drop-shadow(0 0 20px rgba(57, 255, 20, 0.3));
+        }
+
+        .btn-8k {
+            background: #39ff14;
+            color: #000;
+            border: none;
+            padding: 25px 50px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-size: 1.1rem;
+            width: 100%;
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.2);
+        }
+
+        .btn-8k:hover {
+            background: #fff;
+            box-shadow: 0 0 40px rgba(57, 255, 20, 0.6);
+            transform: translateY(-5px);
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 0.7rem;
+            color: #444;
+            letter-spacing: 4px;
+        }
+
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1 style="color: #39ff14; margin-bottom: 5px;">PROFESSIONAL BRANDING UNIT</h1>
+        <p style="color: #666; font-size: 0.7rem; margin-bottom: 40px; letter-spacing: 5px;">SILENT_SERPENT // ELITE OPS
+        </p>
+
+        <div class="preview-box">
+            <!-- EMBEDDED BASE64 DATA TO BYPASS TAINTED CANVAS SECURITY BLOCKS -->
+            <img id="source-img"
+                src="data:image/png;base64,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 "
+                alt="Silent Serpent Master Logo">
+        </div>
+
+        <button class="btn-8k" onclick="exportImage(7680)">DOWNLOAD ULTRA 8K PNG</button>
+        <button class="btn-8k" onclick="exportImage(3840)"
+            style="margin-top: 15px; background: transparent; color: #39ff14; border: 2px solid #39ff14;">DOWNLOAD
+            HIGH-RES 4K PNG</button>
+
+        <div class="status" id="status">CORE RENDERING ENGINE :: READY</div>
+    </div>
+
+    <canvas id="export-canvas"></canvas>
+
+    <script>
+        async function exportImage(targetWidth) {
+            const status = document.getElementById('status');
+            const canvas = document.getElementById('export-canvas');
+            const img = document.getElementById('source-img');
+            const ctx = canvas.getContext('2d');
+
+            const sizeLabel = targetWidth >= 7680 ? "8K" : "4K";
+            status.innerHTML = `INITIALIZING ${sizeLabel} RENDER ENGINE... PLEASE WAIT`;
+            status.style.color = "#39ff14";
+
+            const ratio = img.naturalHeight / img.naturalWidth;
+            const targetHeight = Math.floor(targetWidth * ratio);
+
+            try {
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+
+                // Draw with maximum smoothing
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+
+                // Fill background solid black
+                ctx.fillStyle = "#000";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw the professional image
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                status.innerHTML = `ASSEMBLING ${sizeLabel} DATA PACKETS...`;
+
+                // Use Blob for better memory handling and reliability
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        status.innerHTML = `ERROR: BUFFER ALLOCATION FAILED (${sizeLabel} TOO LARGE?)`;
+                        status.style.color = "#ff0000";
+                        return;
+                    }
+
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `Silent_Serpent_Official_${sizeLabel}_Master.png`;
+                    link.href = url;
+
+                    document.body.appendChild(link);
+                    link.click();
+
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                        status.innerHTML = `${sizeLabel} ASSET EXPORTED SUCCESSFULLY`;
+                    }, 100);
+                }, 'image/png', 1.0);
+
+            } catch (e) {
+                status.innerHTML = "ERROR: " + e.message;
+                status.style.color = "#ff0000";
+                console.error(e);
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #050505;
+            /* Matching the portal background */
+        }
+
+        .logo-container {
+            width: 800px;
+            height: 800px;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 20px rgba(57, 255, 20, 0.4));
+        }
+    </style>
+</head>
+
+<body>
+    <div class="logo-container">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Phoenix Spirit Wings (Blue) -->
+            <path d="M10 50C10 20 40 10 50 15" stroke="#00f3ff" stroke-width="2" stroke-linecap="round" />
+            <path d="M90 50C90 20 60 10 50 15" stroke="#00f3ff" stroke-width="2" stroke-linecap="round" />
+            <path d="M20 60C15 40 35 30 50 35" stroke="#00f3ff" stroke-width="1" opacity="0.5" />
+            <path d="M80 60C85 40 65 30 50 35" stroke="#00f3ff" stroke-width="1" opacity="0.5" />
+
+            <!-- Serpent Body (Green) Forming stylized S -->
+            <path d="M50 25C35 25 30 40 50 50C70 60 65 75 50 80" stroke="#39ff14" stroke-width="7"
+                stroke-linecap="round" stroke-linejoin="round" />
+
+            <!-- Core Glow / Eye -->
+            <circle cx="50" cy="25" r="3" fill="#39ff14" />
+
+            <!-- Cyber Circuit Accents -->
+            <circle cx="50" cy="50" r="40" stroke="#39ff14" stroke-width="0.5" stroke-dasharray="2 2" opacity="0.3" />
+        </svg>
+    </div>
+</body>
+
+</html>

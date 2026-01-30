@@ -228,11 +228,15 @@
     <div class="app-container">
         <!-- Top Navigation -->
         <nav class="top-nav">
-            <div class="logo" onclick="toggleTerminal()">
-                <i data-lucide="shield-check" class="logo-icon"></i>
+            <div class="logo" onclick="toggleTerminal()" style="display: flex; align-items: center; gap: 15px;">
+                <img src="assets/logo_final_ref.png" alt="Silent Serpent Elite Logo"
+                    style="height: 50px; width: auto; filter: drop-shadow(0 0 10px rgba(57, 255, 20, 0.4)); transition: 0.3s; cursor: pointer;">
                 <div class="logo-text">
-                    <span class="white">Silent_</span><span class="green">Serpent</span>
-                    <span class="sub-text">CYBER DEFENSE</span>
+                    <span class="white" style="font-size: 1.4rem; letter-spacing: 2px; font-weight: 900;">SILENT_</span>
+                    <span class="green"
+                        style="font-size: 1.4rem; letter-spacing: 2px; font-weight: 900; color: #39ff14;">SERPENT</span>
+                    <span class="sub-text" style="color:#888; font-size: 0.6rem; letter-spacing: 5px;">ELITE CYBER
+                        OPS</span>
                 </div>
             </div>
 
@@ -441,11 +445,22 @@
         <div class="footer-grid"
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 4rem; max-width: 1200px; margin: 0 auto;">
             <div class="footer-col">
-                <div class="logo" style="margin-bottom: 1.5rem;">
-                    <span class="white"
-                        style="font-size: 1.5rem; font-weight: 800; font-family: var(--font-head);">SILENT_</span><span
-                        class="green"
-                        style="font-size: 1.5rem; font-weight: 800; font-family: var(--font-head);">SERPENT</span>
+                <div class="logo" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                    <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 50C10 20 40 10 50 15" stroke="#00f3ff" stroke-width="2" stroke-linecap="round"
+                            opacity="0.6" />
+                        <path d="M90 50C90 20 60 10 50 15" stroke="#00f3ff" stroke-width="2" stroke-linecap="round"
+                            opacity="0.6" />
+                        <path d="M50 25C35 25 30 40 50 50C70 60 65 75 50 80" stroke="#39ff14" stroke-width="7"
+                            stroke-linecap="round" />
+                        <circle cx="50" cy="25" r="3" fill="#39ff14" />
+                    </svg>
+                    <div>
+                        <span class="white"
+                            style="font-size: 1.5rem; font-weight: 800; font-family: var(--font-head);">SILENT_</span><span
+                            class="green"
+                            style="font-size: 1.5rem; font-weight: 800; font-family: var(--font-head);">SERPENT</span>
+                    </div>
                 </div>
                 <p style="line-height: 1.8; font-size: 0.9rem; margin-bottom: 2rem;">
                     The premium destination for offensive and defensive cybersecurity experts. We provide the tools,
